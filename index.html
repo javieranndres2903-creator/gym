@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>X LEVEL · Control de clientes</title>
+<link rel="stylesheet" href="style.css"></head><body>
+<section class="gate" id="gate">
+<div class="gate-card"><img class="logo" src="logo.jpg" alt="X LEVEL"><h1>X LEVEL</h1>
+<p id="gate-message">Selecciona quién está entrando y luego inicia sesión con su cuenta autorizada.</p>
+<form id="login-form"><label>¿Quién está entrando?</label><select id="login-staff" required><option value="">Selecciona tu usuario</option><option value="Pepe (Entrenador)">Pepe · Entrenador</option><option value="Moises (Entrenador)">Moises · Entrenador</option><option value="Suri (Entrenador)">Suri · Entrenador</option><option value="Mariangel (Entrenadora)">Mariangel · Entrenadora</option><option value="Maria (Dueña)">Maria · Dueña</option><option value="PC del gimnasio">PC del gimnasio</option></select><label>Correo</label><input id="login-email" type="email" autocomplete="username" required><label>Contraseña</label><input id="login-password" type="password" autocomplete="current-password" required><button class="btn">Continuar</button></form>
+<p class="notice" id="gate-error" role="status"></p><button id="import-local" class="btn gh" type="button" hidden>Subir datos guardados en este dispositivo</button>
+</div></section>
+<div class="w" id="app" hidden>
+<header class="top"><img class="logo" src="logo.jpg" alt="X LEVEL"><div><h1>Control de clientes</h1><p>Pagos, vencimientos y seguimiento</p></div>
+<div class="acts"><button class="btn gh" id="bp">⚙ Planes</button><button class="btn" id="bn">＋ Nuevo cliente</button><button class="btn gh" id="logout">Salir</button></div></header>
+<p class="notice" id="app-notice" role="status"></p>
+<section class="st" id="st"></section>
+<div class="tb"><input id="q" type="search" placeholder="Buscar por nombre, cédula o teléfono…"></div>
+<nav class="sh" id="sh" aria-label="Filtrar por turno"></nav>
+<div class="ch" id="ch"></div>
+<main id="list"></main></div>
+
+<dialog id="dc"><form id="fc"><h2 id="tc">Nuevo cliente</h2>
+<div class="g2"><div><label>Nombre</label><input id="f-name" required></div><div><label>Apellido</label><input id="f-last" required></div></div>
+<div class="g2"><div><label>Cédula</label><input id="f-ci" required></div><div><label>Celular</label><input id="f-wa" type="tel" placeholder="0414-0000000" required></div></div>
+<div class="g2"><div><label>Plan</label><select id="f-plan" required></select></div><div><label>Fecha de inicio</label><input id="f-start" type="date" required></div></div>
+<label>Turno</label><select id="f-shift"><option value="Mañana">Mañana</option><option value="Tarde">Tarde</option></select>
+<label>Meta</label><input id="f-obj" placeholder="Bajar grasa, ganar músculo…" required>
+<label>Lesiones o restricciones médicas</label><textarea id="f-les" rows="2"></textarea>
+<label>Contacto de emergencia</label><input id="f-em">
+<div id="kinit"><label>Situación actual de la mensualidad</label><select id="f-initial"><option value="keep">No cambiar la mensualidad</option><option value="paid">Pagó al iniciar el plan</option><option value="remaining">Le quedan días</option><option value="overdue">Ya debe (días vencido)</option></select>
+<div id="initial-days-wrap" style="display:none"><label id="initial-days-label">Días</label><input id="f-initial-days" type="number" min="0" step="1"></div></div>
+<small id="initial-edit-hint" style="display:none;color:var(--m)">Al marcarlo como pagado, el plan se contará desde hoy.</small>
+<div class="ft"><button type="button" class="btn gh" id="x1">Cancelar</button><button class="btn">Guardar</button></div>
+<div class="ft" id="kd"><button type="button" class="btn gh del" id="bd">Eliminar cliente</button></div></form></dialog>
+
+<dialog id="dp"><form id="fp"><h2 id="tp">Registrar pago</h2>
+<div class="g2"><div><label>Fecha de pago</label><input id="p-date" type="date" required></div><div><label>Plan</label><select id="p-plan"></select></div></div>
+<div class="g2"><div><label>Monto ($)</label><input id="p-amt" type="number" min="0" step="0.01" required></div><div><label>Método</label><select id="p-met"><option>Efectivo</option><option>Pago móvil</option><option>Transferencia</option><option>Zelle</option><option>Otro</option></select></div></div>
+<div class="hint" id="p-u"></div>
+<div class="ft"><button type="button" class="btn gh" id="x2">Cancelar</button><button class="btn">Guardar pago</button></div></form></dialog>
+
+<dialog id="dl"><form id="fl"><h2>Planes y precios</h2><div class="g2" style="margin-top:8px"><small style="color:var(--m)">Plan · días que cubre</small><small style="color:var(--m)">Precio ($)</small></div><div id="pl"></div>
+<div class="ft"><button type="button" class="btn gh" id="x3">Cancelar</button><button class="btn">Guardar</button></div></form></dialog>
+
+<script src="supabase-config.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js"></script></body></html>
