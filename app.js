@@ -24,6 +24,7 @@ const save=()=>{
  task.then(()=>notify('Guardado y sincronizado.','success')).catch(error=>notify('No se pudo sincronizar: '+error.message,'error'));
 };
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const normalizeStaffName=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[().·]/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
 const fmtCaracas=(d=new Date())=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);const y=p.find(x=>x.type==='year')?.value,m=p.find(x=>x.type==='month')?.value,day=p.find(x=>x.type==='day')?.value;return `${y}-${m}-${day}`};
 const iso=d=>{const y=d.getUTCFullYear(),m=String(d.getUTCMonth()+1).padStart(2,'0'),day=String(d.getUTCDate()).padStart(2,'0');return `${y}-${m}-${day}`};
 const toD=s=>{const [y,m,d]=String(s).split('-').map(Number);return new Date(Date.UTC(y,m-1,d,0,0,0))};
@@ -123,7 +124,15 @@ async function loadCloud(cache=true){
  ]);
  if(accessError)throw accessError;
  if(!access)throw new Error('Este correo no tiene acceso autorizado.');
- if(!selectedStaff||access.display_name!==selectedStaff)throw new Error('La selección no coincide con la cuenta autorizada.');
+ const assignedStaff=access.display_name?.trim()||'';
+ if(assignedStaff){
+  selectedStaff=assignedStaff;
+  const staffSelect=$('#login-staff');
+  if(staffSelect){
+   const matchingOption=[...staffSelect.options].find(option=>normalizeStaffName(option.value)===normalizeStaffName(assignedStaff));
+   if(matchingOption)staffSelect.value=matchingOption.value;
+  }
+ }
  if(clientError)throw clientError;
  if(settingsError)throw settingsError;
  const remoteClients=(rows||[]).map(row=>({...row.data,id:row.id,pays:row.data.pays||[]}));
