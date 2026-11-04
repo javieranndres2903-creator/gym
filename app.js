@@ -118,21 +118,15 @@ async function loadCloud(cache=true){
  const local=cache?localSnapshot():null;
  const previous=synced;
  const [{data:access,error:accessError},{data:rows,error:clientError},{data:settings,error:settingsError}]=await Promise.all([
-  cloud.from('staff_access').select('email,display_name').eq('email',activeEmail).maybeSingle(),
+  cloud.from('staff_access').select('email,display_name,role').eq('email',activeEmail).maybeSingle(),
   cloud.from('clients').select('id,data'),
   cloud.from('gym_settings').select('plans').eq('id','main').maybeSingle()
  ]);
  if(accessError)throw accessError;
  if(!access)throw new Error('Este correo no tiene acceso autorizado.');
  const assignedStaff=access.display_name?.trim()||'';
- if(assignedStaff){
-  selectedStaff=assignedStaff;
-  const staffSelect=$('#login-staff');
-  if(staffSelect){
-   const matchingOption=[...staffSelect.options].find(option=>normalizeStaffName(option.value)===normalizeStaffName(assignedStaff));
-   if(matchingOption)staffSelect.value=matchingOption.value;
-  }
- }
+ if(normalizeStaffName(assignedStaff)!==normalizeStaffName('Maria (Dueña)')||access.role!=='owner')
+  throw new Error('Solo la cuenta autorizada de Maria, la dueña, puede entrar.');
  if(clientError)throw clientError;
  if(settingsError)throw settingsError;
  const remoteClients=(rows||[]).map(row=>({...row.data,id:row.id,pays:row.data.pays||[]}));
@@ -156,7 +150,7 @@ async function loadCloud(cache=true){
  if(hasLocalChanges)save();
  return{fresh:!settings,hasCloudClients:S.clients.length>0};
 }
-let activeUser=null,activeEmail='',loadingUser=null,channelTimer=null,selectedStaff='';
+let activeUser=null,activeEmail='',loadingUser=null,channelTimer=null,selectedStaff='Maria (Dueña)';
 function scheduleCloudReload(){
  clearTimeout(channelTimer);
  channelTimer=setTimeout(async()=>{
@@ -167,7 +161,7 @@ function scheduleCloudReload(){
 }
 async function activateSession(session){
  if(!session){activeUser=null;loadingUser=null;cloudReady=false;if(cloudChannel){cloud.removeChannel(cloudChannel);cloudChannel=null}showGate('Inicia sesión con tu cuenta autorizada para acceder al control del gimnasio.');return}
- if(!selectedStaff){activeUser=null;cloudReady=false;showGate('Selecciona quién está entrando y accede con la cuenta asignada a esa persona.');return}
+ if(!selectedStaff){activeUser=null;cloudReady=false;showGate('Inicia sesión con la cuenta autorizada de Maria, la dueña.');return}
  if(activeUser===session.user.id&&(cloudReady||loadingUser===session.user.id))return;
  activeUser=session.user.id;cloudReady=false;
  loadingUser=session.user.id;
@@ -188,12 +182,11 @@ async function activateSession(session){
  }catch(error){activeUser=null;loadingUser=null;showGate('No se pudo validar el acceso. '+error.message);$('#gate-error').textContent=error.message}
 }
 $('#login-form').onsubmit=async e=>{
- e.preventDefault();selectedStaff=$('#login-staff').value;$('#gate-error').textContent='Iniciando sesión...';
- if(!selectedStaff){$('#gate-error').textContent='Selecciona tu usuario antes de continuar.';return}
+ e.preventDefault();selectedStaff='Maria (Dueña)';$('#gate-error').textContent='Iniciando sesión...';
  const {error}=await cloud.auth.signInWithPassword({email:$('#login-email').value.trim(),password:$('#login-password').value});
  $('#gate-error').textContent=error?error.message:'';
 };
-$('#logout').onclick=async()=>{selectedStaff='';$('#login-staff').value='';const {error}=await cloud.auth.signOut();if(error)notify('No se pudo cerrar sesión: '+error.message,'error')};
+$('#logout').onclick=async()=>{const {error}=await cloud.auth.signOut();if(error)notify('No se pudo cerrar sesión: '+error.message,'error')};
 $('#import-local').onclick=async()=>{
  const saved=JSON.parse(localStorage.getItem(K)||'{}');
  const clients=saved.clients||[];
