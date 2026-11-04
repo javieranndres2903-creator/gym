@@ -80,8 +80,8 @@ function openC(id){cur=S.clients.find(c=>c.id==id)||null;armed=false;$('#bd').te
  $('#f-start').value=cur?cur.start:T();$('#f-start').disabled=!!cur;$('#kinit').style.display='block';$('#kd').style.display=cur?'flex':'none';
  $('#f-initial').value=cur?'keep':'paid';$('#initial-edit-hint').style.display=cur?'block':'none';$('#f-initial-days').value='7';$('#f-initial').dispatchEvent(new Event('change'));dlg.dc.showModal()}
 $('#f-initial').onchange=()=>{const mode=$('#f-initial').value,custom=mode==='remaining'||mode==='overdue';$('#initial-days-wrap').style.display=custom?'':'none';$('#f-initial-days').required=custom;$('#f-initial-days').min=mode==='overdue'?'1':'0';$('#initial-days-label').textContent=mode==='overdue'?'Días vencido':'Días que le quedan'};
-$('#fc').onsubmit=e=>{e.preventDefault();const d={name:($('#f-name').value.trim()+' '+$('#f-last').value.trim()).trim(),ci:$('#f-ci').value.trim(),wa:$('#f-wa').value.trim(),plan:$('#f-plan').value,shift:$('#f-shift').value,obj:$('#f-obj').value.trim(),les:$('#f-les').value.trim(),em:$('#f-em').value.trim()};
- if(cur)Object.assign(cur,d);else{const c={id:uid(),start:$('#f-start').value,pays:[],...d};S.clients.push(c)}
+$('#fc').onsubmit=e=>{e.preventDefault();const d={name:($('#f-name').value.trim()+' '+$('#f-last').value.trim()).trim(),start:cur?cur.start:$('#f-start').value,ci:$('#f-ci').value.trim(),wa:$('#f-wa').value.trim(),plan:$('#f-plan').value,shift:$('#f-shift').value,obj:$('#f-obj').value.trim(),les:$('#f-les').value.trim(),em:$('#f-em').value.trim()};
+ if(cur)Object.assign(cur,d);else{const c={id:uid(),pays:[],...d};S.clients.push(c)}
  const mode=$('#f-initial').value;
  if(mode==='paid'){
   if(cur)cur.manualUntil=add(T(),(S.plans[d.plan]||[30])[0]);
@@ -141,7 +141,7 @@ async function loadCloud(cache=true){
   S.clients=remoteClients;
   S.plans=remotePlans;
  }
- synced={clients:remoteClients,plans:remotePlans};
+ synced={clients:structuredClone(remoteClients),plans:structuredClone(remotePlans)};
  if(cache)saveLocal();
  render();
  if(hasLocalChanges)save();
@@ -205,4 +205,3 @@ if(!config?.url||!config?.anonKey||config.url.includes('YOUR_')||config.anonKey.
   return activateSession(data.session);
  }).catch(error=>showGate('No se pudo iniciar la sesión: '+error.message));
 }
-
