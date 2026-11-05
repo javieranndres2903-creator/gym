@@ -34,7 +34,7 @@ const M=n=>'$'+(+n).toLocaleString('en-US',{maximumFractionDigits:2}),uid=()=>Ma
 const price=p=>(S.plans[p]||[0,0])[1];
 const lastU=c=>c.manualUntil||c.baseUntil||c.pays.reduce((m,p)=>p.until>m?p.until:m,'');
 function info(c){const u=lastU(c);if(!u)return{u,d:null,s:'sin',debe:c.plan?price(c.plan):0};
- const d=diff(u,T()),s=d>7?'act':d>=0?'por':'mor';return{u,d,s,debe:s==='mor'?price(c.plan):0}}
+ const d=diff(u,T()),warningDays=(S.plans[c.plan]||[])[0]===7?2:7,s=d>warningDays?'act':d>=0?'por':'mor';return{u,d,s,debe:s==='mor'?price(c.plan):0}}
 function pay(c,date,plan,amt,met){const pv=lastU(c),b=pv&&pv>date?pv:date;
  const until=add(b,(S.plans[plan]||[30])[0]);
  c.pays.push({d:date,plan,amt:+amt,met,until});c.manualUntil=until;c.plan=plan}
@@ -56,7 +56,7 @@ function render(){
  $('#ch').style.display=selected?'':'none';
  const cob=S.clients.reduce((t,c)=>t+c.pays.filter(p=>p&&typeof p.d==='string'&&p.d.slice(0,7)==mes).reduce((a,p)=>a+(Number(p.amt)||0),0),0);
  const deb=L.reduce((t,x)=>t+x.i.debe,0);
- $('#st').innerHTML=[['Cobrado este mes',M(cob),'var(--g)'],['Por cobrar',M(deb),'var(--r)'],['Por vencer (7 días)',n('por'),'var(--y)'],['Deudores',n('mor'),'var(--r)']]
+ $('#st').innerHTML=[['Cobrado este mes',M(cob),'var(--g)'],['Por cobrar',M(deb),'var(--r)'],['Por vencer',n('por'),'var(--y)'],['Deudores',n('mor'),'var(--r)']]
   .map(([a,b,c])=>`<div class="sc"><small>${a}</small><b style="color:${c}">${b}</b></div>`).join('');
  $('#ch').innerHTML=[['todos','Todos',L.length],['act','Activos'],['por','Por vencer'],['mor','Deudores'],['ina','Inactivos'],['sin','Sin pago']]
   .map(([k,l,v])=>`<button data-f="${k}" class="${S.f==k?'on':''}">${l} ${v??n(k)}</button>`).join('');
