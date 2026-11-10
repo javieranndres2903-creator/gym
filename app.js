@@ -33,6 +33,8 @@ const add=(s,n)=>{const d=toD(s);d.setUTCDate(d.getUTCDate()+n);return iso(d)},f
 const M=n=>'$'+(+n).toLocaleString('en-US',{maximumFractionDigits:2}),uid=()=>Math.random().toString(36).slice(2,10);
 const price=p=>(S.plans[p]||[0,0])[1];
 const lastU=c=>c.manualUntil||c.baseUntil||c.pays.reduce((m,p)=>p.until>m?p.until:m,'');
+const lastPay=c=>c.pays.filter(p=>p&&p.met).sort((a,b)=>String(b.d||'').localeCompare(String(a.d||'')))[0];
+const normalizeCi=value=>String(value??'').replace(/[^\p{L}\p{N}]/gu,'').toLowerCase();
 function info(c){const u=lastU(c);if(!u)return{u,d:null,s:'sin',debe:c.plan?price(c.plan):0};
  const d=diff(u,T()),warningDays=(S.plans[c.plan]||[])[0]===7?2:7,s=d>warningDays?'act':d>=0?'por':'mor';return{u,d,s,debe:s==='mor'?price(c.plan):0}}
 function pay(c,date,plan,amt,met){const pv=lastU(c),b=pv&&pv>date?pv:date;
@@ -69,6 +71,8 @@ function render(){
  <div class="r2"><div><small>Vence</small><b>${i.u?fd(i.u):'—'}</b></div><div><small>${i.d==null?'Días':i.d<0?'Venció hace':i.d==0?'Vence':'Quedan'}</small><b>${i.d==null?'—':i.d==0?'Hoy':Math.abs(i.d)+' '+(Math.abs(i.d)===1?'día':'días')}</b></div><div><small>Debe</small><b style="color:${i.debe?'var(--r)':'var(--s)'}">${i.debe?M(i.debe):'—'}</b></div></div>
  <div class="r3"><button class="pay" data-a="pay" data-id="${c.id}">Registrar pago</button>${w?`<a class="wa" href="${w}" target="_blank" rel="noopener">WhatsApp</a>`:''}<button data-a="edit" data-id="${c.id}">Editar</button></div></article>`}).join('')
  :`<div class="em">${S.clients.length?'Ningún cliente coincide con la búsqueda.':'Aún no hay clientes. Toca «Nuevo cliente» para empezar.'}</div>`}
+function showPaymentMethods(){document.querySelectorAll('#list .cl').forEach(card=>{if(card.querySelector('.payment-method'))return;const id=card.querySelector('[data-id]')?.dataset.id,c=S.clients.find(x=>x.id===id),p=c&&lastPay(c);if(!p)return;const item=document.createElement('small');item.className='payment-method';item.textContent='Método de pago: '+p.met;card.querySelector('.r1 > div').append(item)})}
+new MutationObserver(showPaymentMethods).observe($('#list'),{childList:true});
 const opts=()=>Object.keys(S.plans).map(p=>`<option>${esc(p)}</option>`).join('');
 const dlg={};['dc','dp','dl'].forEach(k=>dlg[k]=$('#'+k));
 ['x1:dc','x2:dp','x3:dl'].forEach(s=>{const[a,b]=s.split(':');$('#'+a).onclick=()=>dlg[b].close()});
@@ -77,16 +81,19 @@ function openC(id){cur=S.clients.find(c=>c.id==id)||null;armed=false;$('#bd').te
  $('#f-plan').innerHTML='<option value="">Seleccionar plan</option>'+opts();$('#tc').textContent=cur?'Editar cliente':'Nuevo cliente';
  const c=cur||{name:'',ci:'',wa:'',plan:'Mensual',shift:S.shift||'Mañana',obj:'',les:'',em:''};
  const parts=c.name.trim().split(/\s+/);
- $('#f-name').value=parts.shift()||'';$('#f-last').value=parts.join(' ');$('#f-ci').value=c.ci;$('#f-wa').value=c.wa;$('#f-plan').value=c.plan;$('#f-shift').value=c.shift||'Mañana';$('#f-obj').value=c.obj;$('#f-les').value=c.les;$('#f-em').value=c.em;
+ $('#f-name').value=parts.shift()||'';$('#f-last').value=parts.join(' ');$('#f-ci').value=c.ci;$('#client-duplicate-error').textContent='';$('#f-wa').value=c.wa;$('#f-plan').value=c.plan;$('#f-shift').value=c.shift||'Mañana';$('#f-obj').value=c.obj;$('#f-les').value=c.les;$('#f-em').value=c.em;
  $('#f-start').value=cur?cur.start:T();$('#f-start').disabled=!!cur;$('#kinit').style.display='block';$('#kd').style.display=cur?'flex':'none';
  $('#f-initial').value=cur?'keep':'paid';$('#initial-edit-hint').style.display=cur?'block':'none';$('#f-initial-days').value='7';$('#f-initial').dispatchEvent(new Event('change'));dlg.dc.showModal()}
 $('#f-initial').onchange=()=>{const mode=$('#f-initial').value,custom=mode==='remaining'||mode==='overdue';$('#initial-days-wrap').style.display=custom?'':'none';$('#f-initial-days').required=custom;$('#f-initial-days').min=mode==='overdue'?'1':'0';$('#initial-days-label').textContent=mode==='overdue'?'Días vencido':'Días que le quedan'};
+$('#f-initial').addEventListener('change',()=>{$('#initial-method-wrap').style.display=$('#f-initial').value==='paid'?'':'none'});
 $('#fc').onsubmit=e=>{e.preventDefault();const d={name:($('#f-name').value.trim()+' '+$('#f-last').value.trim()).trim(),start:cur?cur.start:$('#f-start').value,ci:$('#f-ci').value.trim(),wa:$('#f-wa').value.trim(),plan:$('#f-plan').value,shift:$('#f-shift').value,obj:$('#f-obj').value.trim(),les:$('#f-les').value.trim(),em:$('#f-em').value.trim()};
+ const duplicate=S.clients.find(c=>c!==cur&&normalizeCi(c.ci)===normalizeCi(d.ci));
+ if(duplicate){$('#client-duplicate-error').textContent='Este cliente ya está registrado. Elimina el registro anterior antes de volver a crearlo.';return}
  if(cur)Object.assign(cur,d);else{const c={id:uid(),pays:[],...d};S.clients.push(c)}
  const mode=$('#f-initial').value;
  if(mode==='paid'){
   if(cur)cur.manualUntil=add(T(),(S.plans[d.plan]||[30])[0]);
-  else pay(S.clients[S.clients.length-1],d.start,d.plan,price(d.plan),'Efectivo');
+  else pay(S.clients[S.clients.length-1],d.start,d.plan,price(d.plan),$('#f-met').value);
  }else if(mode==='remaining'||mode==='overdue'){
   const days=Number($('#f-initial-days').value),client=cur||S.clients[S.clients.length-1];
   client.manualUntil=add(T(),mode==='overdue'?-days:days);
