@@ -52,6 +52,7 @@ textarea{resize:vertical}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g2>*{min-width:0}.ft{display:flex;gap:8px;margin-top:16px}.ft .btn{flex:1}
 .ck{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px;color:var(--s)}.ck input{width:auto}
 .hint{font-size:13px;color:var(--g);margin-top:10px}.del{color:var(--r)!important}
+.form-error{display:block;color:var(--r);font-size:12px;margin-top:5px}
 @media(max-width:640px){
  .w{width:100%;min-width:0;padding:14px 12px 40px}
  .top{gap:12px}
