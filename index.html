@@ -21,13 +21,14 @@
 
 <dialog id="dc"><form id="fc"><h2 id="tc">Nuevo cliente</h2>
 <div class="g2"><div><label>Nombre</label><input id="f-name" required></div><div><label>Apellido</label><input id="f-last" required></div></div>
-<div class="g2"><div><label>Cédula</label><input id="f-ci" required></div><div><label>Celular</label><input id="f-wa" type="tel" placeholder="0414-0000000" required></div></div>
+<div class="g2"><div><label>Cédula</label><input id="f-ci" required><small id="client-duplicate-error" class="form-error" role="status"></small></div><div><label>Celular</label><input id="f-wa" type="tel" placeholder="0414-0000000" required></div></div>
 <div class="g2"><div><label>Plan</label><select id="f-plan" required></select></div><div><label>Fecha de inicio</label><input id="f-start" type="date" required></div></div>
 <label>Turno</label><select id="f-shift"><option value="Mañana">Mañana</option><option value="Tarde">Tarde</option></select>
 <label>Meta</label><input id="f-obj" placeholder="Bajar grasa, ganar músculo…" required>
 <label>Lesiones o restricciones médicas</label><textarea id="f-les" rows="2"></textarea>
 <label>Contacto de emergencia</label><input id="f-em">
 <div id="kinit"><label>Situación actual de la mensualidad</label><select id="f-initial"><option value="keep">No cambiar la mensualidad</option><option value="paid">Pagó al iniciar el plan</option><option value="remaining">Le quedan días</option><option value="overdue">Ya debe (días vencido)</option></select>
+<div id="initial-method-wrap" style="display:none"><label>Método de pago inicial</label><select id="f-met"><option>Efectivo Bs</option><option>Divisa $</option><option>Pago móvil</option></select></div>
 <div id="initial-days-wrap" style="display:none"><label id="initial-days-label">Días</label><input id="f-initial-days" type="number" min="0" step="1"></div></div>
 <small id="initial-edit-hint" style="display:none;color:var(--m)">Al marcarlo como pagado, el plan se contará desde hoy.</small>
 <div class="ft"><button type="button" class="btn gh" id="x1">Cancelar</button><button class="btn">Guardar</button></div>
@@ -35,7 +36,7 @@
 
 <dialog id="dp"><form id="fp"><h2 id="tp">Registrar pago</h2>
 <div class="g2"><div><label>Fecha de pago</label><input id="p-date" type="date" required></div><div><label>Plan</label><select id="p-plan"></select></div></div>
-<div class="g2"><div><label>Monto ($)</label><input id="p-amt" type="number" min="0" step="0.01" required></div><div><label>Método</label><select id="p-met"><option>Efectivo</option><option>Pago móvil</option><option>Transferencia</option><option>Zelle</option><option>Otro</option></select></div></div>
+<div class="g2"><div><label>Monto ($)</label><input id="p-amt" type="number" min="0" step="0.01" required></div><div><label>Método</label><select id="p-met"><option>Efectivo Bs</option><option>Divisa $</option><option>Pago móvil</option></select></div></div>
 <div class="hint" id="p-u"></div>
 <div class="ft"><button type="button" class="btn gh" id="x2">Cancelar</button><button class="btn">Guardar pago</button></div></form></dialog>
 
